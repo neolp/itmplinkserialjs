@@ -257,7 +257,7 @@ class ITMPSerialLink extends EventEmitter {
     return this.port.send(this.subaddr, msg)
   }
   process(msg) {
-    emit('message', msg)
+    this.emit('message', msg)
   }
   connect() { }
 
