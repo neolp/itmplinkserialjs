@@ -241,8 +241,9 @@ SerialPort.list((err, ports) => {
 */
 
 class ITMPSerialLink extends EventEmitter {
-  constructor(addr, alias) {
+  constructor(addr, cfg) {
     super()
+    if (!cfg.role) cfg.role = 'internal'
     let addrarray = addr.split('~')
     let port = ports.get(addrarray[0])
     if (!port) {
@@ -259,7 +260,9 @@ class ITMPSerialLink extends EventEmitter {
   process(msg) {
     this.emit('message', msg)
   }
-  connect() { }
+  connect() {
+    this.emit('connect')
+  }
 
   static addAlias(addr, alias) {
     let addrarray = addr.split('~')
