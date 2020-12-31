@@ -1,6 +1,6 @@
 {
   "name": "itmplinkserial",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "itmplinkserial js implementation",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "cbor-sync": "^1.0.3",
-    "serialport": "^7.1.4"
+    "serialport": "^9.0.4"
   },
   "bugs": {
     "url": "https://github.com/neolp/itmplinkserialjs/issues"
