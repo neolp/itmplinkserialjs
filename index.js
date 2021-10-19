@@ -121,7 +121,7 @@ class ITMPSerialPort extends EventEmitter {
       clearTimeout(this.timerId)
       this.timerId = setTimeout(() => {
         this.timeisout()
-      }, 200)
+      }, 50)
       this.internalsend(addr, msg)
       resolve()
     } else {
@@ -153,7 +153,7 @@ class ITMPSerialPort extends EventEmitter {
         this.cur_addr = addr
         this.timerId = setTimeout(() => {
           this.timeisout()
-        }, 100)
+        }, 50)
         this.internalsend(addr, binmsg)
         resolve()
       }
@@ -251,8 +251,8 @@ class ITMPSerialLink extends EventEmitter {
       ports.set(addrarray[0], port)
     }
     this.port = port
-    this.subaddr = addrarray[1]
-    this.port.addlink(addrarray[1], this)
+    this.subaddr = +addrarray[1]
+    this.port.addlink(+addrarray[1], this)
   }
   send(msg) {
     return this.port.send(this.subaddr, msg)
