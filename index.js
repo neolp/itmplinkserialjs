@@ -1,5 +1,5 @@
 const EventEmitter = require('events')
-const SerialPort = require('serialport')
+const {SerialPort} = require('serialport')
 const crc8 = require('./crc8')
 const cbor = require('cbor-sync')
 var URL = require('url').URL
@@ -21,7 +21,8 @@ class ITMPSerialPort extends EventEmitter {
       portprops[name] = tonumberifpossible(value)
     })
     const portname = parsedurl.host + parsedurl.pathname
-    this.port = new SerialPort(portname, portprops)
+    portprops['path'] = portname
+    this.port = new SerialPort( portprops)
 
     // incoming messages encoding
     this.inbuf = Buffer.allocUnsafe(1024) // buffer for incoming bytes
