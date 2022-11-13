@@ -32,6 +32,7 @@ class ITMPSerialPort extends EventEmitter {
 
     this.busy = false // bus busy flag
     this.timerId = null // timeout timer id
+    this.closing = false
 
     this.cur_addr = 0 // current transaction address
     this.cur_buf = Buffer.allocUnsafe(1024)
@@ -43,6 +44,7 @@ class ITMPSerialPort extends EventEmitter {
     // Open errors will be emitted as an error event
     this.port.on('error', (err) => {
       //console.log('Error: ', err.message)
+      if (!this.closing)
       setTimeout((that) => {
         if (!that.port.isOpen) {
           that.port.open()
@@ -75,6 +77,8 @@ class ITMPSerialPort extends EventEmitter {
   }
 
   close() {
+    this.closing = true
+    this.autoReconnect = false
     this.port.close()
     clearTimeout(this.timerId)
   }
@@ -263,6 +267,9 @@ class ITMPSerialLink extends EventEmitter {
   }
   connect() {
     this.emit('connect')
+  }
+  close(){
+    this.port.close()
   }
 
   static addAlias(addr, alias) {
