@@ -33,6 +33,8 @@ class ITMPSerialPort extends EventEmitter {
     this.busy = false // bus busy flag
     this.timerId = null // timeout timer id
     this.closing = false
+    
+    this.bustimeout = portprops['bustimeout'] ? portprops['bustimeout'] : 50
 
     this.cur_addr = 0 // current transaction address
     this.cur_buf = Buffer.allocUnsafe(1024)
@@ -83,11 +85,14 @@ class ITMPSerialPort extends EventEmitter {
     clearTimeout(this.timerId)
   }
 
-  addlink(addr, link) {
-    this.links.set(+addr, link)
+  addlink(subaddr, link) {
+    this.links.set(+subaddr, link)
   }
-  removelink(addr) {
-    this.links.delete(+addr)
+  removelink(subaddr) {
+    return this.links.delete(+subaddr)
+  }
+  getlink(subaddr) {
+    return this.links.get(+subaddr)
   }
   income(data) {
     for (let i = 0; i < data.length; i++) {
@@ -126,7 +131,7 @@ class ITMPSerialPort extends EventEmitter {
       clearTimeout(this.timerId)
       this.timerId = setTimeout(() => {
         this.timeisout()
-      }, 50)
+      }, this.bustimeout)
       this.internalsend(addr, msg)
       resolve()
     } else {
@@ -158,7 +163,7 @@ class ITMPSerialPort extends EventEmitter {
         this.cur_addr = addr
         this.timerId = setTimeout(() => {
           this.timeisout()
-        }, 50)
+        }, this.bustimeout)
         this.internalsend(addr, binmsg)
         resolve()
       }
@@ -270,6 +275,15 @@ class ITMPSerialLink extends EventEmitter {
   }
   close(){
     this.port.close()
+  }
+  setsubaddress(subaddr) {
+    if (this.port.getlink(this.subaddr) !== this)
+      throw new Error('wrong subaddr')
+    if (this.port.getlink(+subaddr) !== undefined)
+      throw new Error('Busy subaddr')
+    this.port.removelink(this.subaddr)
+    this.port.addlink(+subaddr, this)
+    this.subaddr = +subaddr
   }
 
   static addAlias(addr, alias) {
