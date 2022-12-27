@@ -35,6 +35,7 @@ class ITMPSerialPort extends EventEmitter {
     this.closing = false
     
     this.bustimeout = portprops['bustimeout'] ? portprops['bustimeout'] : 50
+    this.emitraw = portprops['raw'] ? portprops['raw'] : false
 
     this.cur_addr = 0 // current transaction address
     this.cur_buf = Buffer.allocUnsafe(1024)
@@ -59,16 +60,17 @@ class ITMPSerialPort extends EventEmitter {
     })
     this.port.on('open', () => {
       this.ready = true
-      this.emit('connect', this)
+      this.links.forEach((lnk)=>lnk.onconnect())
     })
     this.port.on('close', () => {
       this.ready = false
+      this.links.forEach((lnk)=>lnk.ondisconnect())
       while (this.msgqueue.length > 0) {
         const [addr, msg, resolve, reject] = this.msgqueue.shift()
         reject()
       }
       if (this.autoReconnect)
-        setTimeout(this.reopen, 100, this)
+        setTimeout((that) => that.port.open(), 100, this)
     })
   }
 
@@ -107,8 +109,10 @@ class ITMPSerialPort extends EventEmitter {
         if (this.inpos > 2 && this.incrc === 0 /* this.inbuf[this.inpos-1] */) {
           const addr = this.inbuf[0]
           const link = this.links.get(addr)
+          const msg = cbor.decode(this.inbuf.slice(1, this.inpos - 1))
+          if (this.emitraw)
+            this.links.forEach((lnk)=>lnk.rawmessage(msg,addr))
           if (link) {
-            const msg = cbor.decode(this.inbuf.slice(1, this.inpos - 1))
             link.process(msg)
           }
           this.nexttransaction()
@@ -267,11 +271,20 @@ class ITMPSerialLink extends EventEmitter {
   send(msg) {
     return this.port.send(this.subaddr, msg)
   }
+  rawmessage(msg,addr) {
+    this.emit('rawmessage', {msg,addr})
+  }
   process(msg) {
     this.emit('message', msg)
   }
   connect() {
     this.emit('connect')
+  }
+  onconnect() {
+    this.emit('connect')
+  }
+  ondisconnect() {
+    this.emit('disconnect')
   }
   close(){
     this.port.close()
