@@ -1,6 +1,6 @@
 {
   "name": "itmplinkserial",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "itmplinkserial js implementation",
   "main": "index.js",
   "scripts": {

@@ -109,13 +109,16 @@ class ITMPSerialPort extends EventEmitter {
         if (this.inpos > 2 && this.incrc === 0 /* this.inbuf[this.inpos-1] */) {
           const addr = this.inbuf[0]
           const link = this.links.get(addr)
-          const msg = cbor.decode(this.inbuf.slice(1, this.inpos - 1))
-          if (this.emitraw)
-            this.links.forEach((lnk)=>lnk.rawmessage(msg,addr))
-          if (link) {
-            link.process(msg)
+          try {
+            const msg = cbor.decode(this.inbuf.subarray(1, this.inpos - 1))
+            if (this.emitraw)
+              this.links.forEach((lnk)=>lnk.rawmessage(msg,addr))
+            if (link) {
+              link.process(msg)
+            }
+          } finally {
+            this.nexttransaction()
           }
-          this.nexttransaction()
         }
         this.lastchar = 0
         this.inpos = 0
@@ -206,7 +209,7 @@ class ITMPSerialPort extends EventEmitter {
     }
 
     this.cur_buf[pos] = 0x7e
-    const sndbuf = this.cur_buf.slice(0, pos + 1)
+    const sndbuf = this.cur_buf.subarray(0, pos + 1)
 
     this.port.write(sndbuf, (errdt) => {
       if (errdt) {
