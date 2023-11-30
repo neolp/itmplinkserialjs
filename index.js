@@ -116,6 +116,8 @@ class ITMPSerialPort extends EventEmitter {
             if (link) {
               link.process(msg)
             }
+          } catch (err){
+            // console.error(err)
           } finally {
             this.nexttransaction()
           }
