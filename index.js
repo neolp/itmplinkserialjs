@@ -96,6 +96,9 @@ class ITMPSerialPort extends EventEmitter {
   getlink(subaddr) {
     return this.links.get(+subaddr)
   }
+  getlinksnum() {
+    return this.links.size
+  }
   income(data) {
     for (let i = 0; i < data.length; i++) {
       if (this.lastchar === 0x7d) {
@@ -270,8 +273,9 @@ class ITMPSerialLink extends EventEmitter {
       ports.set(addrarray[0], port)
     }
     this.port = port
+    this.portname = addrarray[0]
     this.subaddr = +addrarray[1]
-    this.port.addlink(+addrarray[1], this)
+    this.port.addlink(this.subaddr, this)
   }
   send(msg) {
     return this.port.send(this.subaddr, msg)
@@ -292,7 +296,11 @@ class ITMPSerialLink extends EventEmitter {
     this.emit('disconnect')
   }
   close(){
-    this.port.close()
+    this.port.removelink(this.subaddr)
+    if (this.port.getlinksnum() == 0) {// no more links
+      this.port.close()
+      ports.delete(this.portname)
+    }
   }
   setsubaddress(subaddr) {
     if (this.port.getlink(this.subaddr) !== this)
