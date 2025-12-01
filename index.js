@@ -56,7 +56,11 @@ class ITMPSerialPort extends EventEmitter {
     })
 
     this.port.on('data', (data) => {
-      this.income(data)
+      try {
+        this.income(data);
+      } catch (e) {
+        console.error(e);
+      }
     })
     this.port.on('open', () => {
       this.ready = true
